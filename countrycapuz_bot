@@ -1,0 +1,44 @@
+import asyncio
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import Message
+from aiogram.filters import Command
+from config import BOT_TOKEN
+from keyboards import countries_keyboard
+from country_data import country_data
+
+# Bot va Dispatcher obyektlari
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
+
+@dp.message(Command("start"))
+async def start_handler(message: Message):
+    text = (
+        "🌍 Salom! Davlat nomini yuboring va men sizga uning "
+        "poytaxti va aholisi haqida ma’lumot beraman.\n\n"
+        "Masalan: Uzbekistan 🇺🇿"
+    )
+    await message.answer(text, reply_markup=countries_keyboard())
+
+@dp.message()
+async def country_info(message: Message):
+    name = message.text.strip().title()
+    if name in country_data:
+        info = country_data[name]
+        await message.answer(
+            f"🏙 **Davlat:** {name}\n"
+            f"🏛 **Poytaxt:** {info['capital']}\n"
+            f"👥 **Aholi soni:** {info['population']}",
+            parse_mode="Markdown"
+        )
+    else:
+        await message.answer(
+            "❌ Bunday davlat topilmadi. Iltimos ro‘yxatdan tanlang yoki to‘g‘ri yozing.",
+            reply_markup=countries_keyboard()
+        )
+
+async def main():
+    print("✅ Bot ishga tushdi...")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
